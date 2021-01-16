@@ -24,7 +24,41 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include <stdlib.h>
+#include "addrspace.h"
+#include "synch.h"
+#include <stdio.h>
 
+void
+ExecProcess(int filenames)
+{
+  char* filename = (char*) filenames;
+  filename[7] = '/';
+  //  printf("ExecProcess for %s\n", filename);                                              
+  OpenFile *executable = fileSystem->Open(filename);
+  AddrSpace *space;
+
+  if (executable == NULL) {
+    printf("Unable to open file %s\n", filename);
+        return;
+  }
+  space = new AddrSpace(executable);
+  currentThread->space = space;
+  
+  delete executable;                  // close file                                       
+  
+  space->InitRegisters();             // set the initial register values                  
+  space->RestoreState();              // load page table register                         
+  
+  machine->Run();                     // jump to the user progam                          
+  ASSERT(FALSE);                      // machine->Run never returns;                      
+  // the address space exits                                                              
+  // by doing the syscall "exit"                                                          
+}
+
+
+
+//#include "progtest.cc"
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -48,6 +82,23 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
+int 
+checkNulAhead(int name, int* physAddr) {
+  //physAddr = (int*) malloc(1*sizeof(int));
+  machine->Translate(name, physAddr, 1, true);
+  //printf("in check nul\n");
+  if (machine->mainMemory[*physAddr] != '\0') {
+    
+    return 1;
+  }
+  else { 
+    
+    return 0;
+  }
+
+}
+
+  
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -56,8 +107,112 @@ ExceptionHandler(ExceptionType which)
     if ((which == SyscallException) && (type == SC_Halt)) {
 	DEBUG('a', "Shutdown, initiated by user program.\n");
    	interrupt->Halt();
-    } else {
+    } 
+
+
+
+    else if ((which == SyscallException) && (type == SC_Exit)) {
+      int arg1 = machine->ReadRegister(4);
+      processTermID = currentThread->processID;
+      if (ioList->IsEmpty()) {}
+      else {
+      Thread *t = static_cast<Thread*>(ioList->Remove());
+      t->space->RestoreState();
+      t->space->InitRegisters();
+      scheduler->ReadyToRun(t);
+      }
+      currentThread->space->DealocateMem();
+      currentThread->Finish();
+     } 
+    
+    else if ((which == SyscallException) && (type == SC_Join)) {
+      int arg1 = machine->ReadRegister(4);
+      interrupt->SetLevel(IntOff);
+      currentThread->space->SaveState();
+      ioList->Append(currentThread);
+      currentThread->Sleep();
+      
+      
+     }
+
+    else if ((which == SyscallException) && (type == SC_Write)) {
+      
+      int size = machine->ReadRegister(5);  //SIZE OF STRING
+      int bufferAdr = machine->ReadRegister(4); //location of string  
+      int* physAddr = (int*) malloc(1*sizeof(int));
+ 
+      for (int i = 0; i < size; i++) {
+	machine->Translate(bufferAdr+i, physAddr, 1, true);
+	printf("%c", machine->mainMemory[*physAddr]);
+      }
+      printf("\n");
+    }
+
+
+
+    else if ((which == SyscallException) && (type == SC_Exec)) {
+      int name = machine->ReadRegister(4);
+      int* physAddr = (int*) malloc(1*sizeof(int));
+      machine->Translate(name, physAddr, 1, true);
+      char buffer[60]; // = (char) malloc(sizeof(char)*60);
+      
+      int i = 0;
+      while(i<60 && checkNulAhead(name+i, physAddr)) {
+	machine->Translate(name+i, physAddr, 1, true);
+	//	printf("%c\n", machine->mainMemory[*physAddr]);
+	buffer[i] = machine->mainMemory[*physAddr];
+	i++;
+      } 
+      
+      //printf("in exec %s\n", buffer); 
+      
+      Thread *t = new Thread(buffer);
+      currentProcess += 1;   
+      t->processID = currentProcess;                                               
+      char* stri = (char*) malloc(sizeof(buffer)); 
+      stri = (char*) &buffer;
+      currentThread->space->SaveState();
+      machine->WriteRegister(4, currentProcess); 
+      t->Fork(ExecProcess, (int) stri);
+      
+    }
+
+    else if ((which == SyscallException) && (type == SC_Read)) {
+      int bufferOffset = machine->ReadRegister(4);
+      int bufferNum = machine->ReadRegister(5);
+      char ch;
+      for( int i = 0; i < bufferNum; i++){
+	
+	if( scanf("%c",&ch) != EOF )
+	  if( machine->WriteMem(bufferOffset + i , 1, (int)ch ) == false )
+	    return;
+	  else
+	    break;
+      }
+
+
+
+
+    }
+
+
+
+    
+
+    else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);
     }
+
+    
+    int currentPC = machine->ReadRegister(PCReg);
+    int nextPC = machine->ReadRegister(NextPCReg);
+    machine->WriteRegister(PrevPCReg, currentPC);
+    machine->WriteRegister(PCReg, nextPC);
+    machine->WriteRegister(NextPCReg, nextPC+4);
+    			   
 }
+
+
+
+

@@ -23,6 +23,7 @@
 void
 StartProcess(char *filename)
 {
+  printf("starting process for %s\n", filename); 
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
 
@@ -43,6 +44,35 @@ StartProcess(char *filename)
 					// the address space exits
 					// by doing the syscall "exit"
 }
+
+
+void
+FProcess(int filenames)
+{
+  char* filename = (char*) filenames;
+  //  printf("FProcess for %s\n", filename);
+  OpenFile *executable = fileSystem->Open(filename);
+  AddrSpace *space;
+
+  if (executable == NULL) {
+    printf("Unable to open file %s\n", filename);
+    return;
+  }
+  space = new AddrSpace(executable);
+  currentThread->space = space;
+
+  delete executable;                  // close file                           
+
+  space->InitRegisters();             // set the initial register values      
+  space->RestoreState();              // load page table register             
+
+  machine->Run();                     // jump to the user progam              
+  ASSERT(FALSE);                      // machine->Run never returns;          
+  // the address space exits              
+  // by doing the syscall "exit"          
+}
+
+
 
 // Data structures needed for the console test.  Threads making
 // I/O requests wait on a Semaphore to delay until the I/O completes.

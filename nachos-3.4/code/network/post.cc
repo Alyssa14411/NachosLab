@@ -18,9 +18,7 @@
 
 #include "copyright.h"
 #include "post.h"
-#ifdef HOST_SPARC
-#include <strings.h>
-#endif
+
 //----------------------------------------------------------------------
 // Mail::Mail
 //      Initialize a single mail message, by concatenating the headers to
@@ -37,7 +35,8 @@ Mail::Mail(PacketHeader pktH, MailHeader mailH, char *msgData)
 
     pktHdr = pktH;
     mailHdr = mailH;
-    bcopy(msgData, data, mailHdr.length);
+//    bcopy(msgData, data, mailHdr.length);
+    memcpy(data, msgData,  mailHdr.length);
 }
 
 //----------------------------------------------------------------------
@@ -131,7 +130,8 @@ MailBox::Get(PacketHeader *pktHdr, MailHeader *mailHdr, char *data)
 	printf("Got mail from mailbox: ");
 	PrintHeader(*pktHdr, *mailHdr);
     }
-    bcopy(mail->data, data, mail->mailHdr.length);
+//    bcopy(mail->data, data, mail->mailHdr.length);
+     memcpy(data, mail->data,  mail->mailHdr.length);
 					// copy the message data into
 					// the caller's buffer
     delete mail;			// we've copied out the stuff we
@@ -276,8 +276,10 @@ PostOffice::Send(PacketHeader pktHdr, MailHeader mailHdr, char* data)
     pktHdr.length = mailHdr.length + sizeof(MailHeader);
 
     // concatenate MailHeader and data
-    bcopy(&mailHdr, buffer, sizeof(MailHeader));
-    bcopy(data, buffer + sizeof(MailHeader), mailHdr.length);
+//    bcopy(&mailHdr, buffer, sizeof(MailHeader));
+    memcpy(buffer, &mailHdr,  sizeof(MailHeader));
+//    bcopy(data, buffer + sizeof(MailHeader), mailHdr.length);
+    memcpy(buffer + sizeof(MailHeader), data, mailHdr.length);
 
     sendLock->Acquire();   		// only one message can be sent
 					// to the network at any one time

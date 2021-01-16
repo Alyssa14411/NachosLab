@@ -10,9 +10,6 @@
 
 #include "copyright.h"
 #include "system.h"
-#ifdef HOST_SPARC
-#include <strings.h>
-#endif
 
 // Dummy functions because C++ can't call member functions indirectly 
 static void NetworkReadPoll(int arg)
@@ -75,7 +72,8 @@ Network::CheckPktAvail()
     // divide packet into header and data
     inHdr = *(PacketHeader *)buffer;
     ASSERT((inHdr.to == ident) && (inHdr.length <= MaxPacketSize));
-    bcopy(buffer + sizeof(PacketHeader), inbox, inHdr.length);
+//    bcopy(buffer + sizeof(PacketHeader), inbox, inHdr.length);
+    memcpy(inbox, buffer + sizeof(PacketHeader), inHdr.length);
     delete []buffer ;
 
     DEBUG('n', "Network received packet from %d, length %d...\n",
@@ -121,7 +119,8 @@ Network::Send(PacketHeader hdr, char* data)
     // concatenate hdr and data into a single buffer, and send it out
     char *buffer = new char[MaxWireSize];
     *(PacketHeader *)buffer = hdr;
-    bcopy(data, buffer + sizeof(PacketHeader), hdr.length);
+//    bcopy(data, buffer + sizeof(PacketHeader), hdr.length);
+    memcpy(buffer + sizeof(PacketHeader), data,  hdr.length);
     SendToSocket(sock, buffer, MaxWireSize, toName);
     delete []buffer;
 }
@@ -134,6 +133,7 @@ Network::Receive(char* data)
 
     inHdr.length = 0;
     if (hdr.length != 0)
-    	bcopy(inbox, data, hdr.length);
+//    	bcopy(inbox, data, hdr.length);
+        memcpy(data, inbox,  hdr.length);
     return hdr;
 }

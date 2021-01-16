@@ -11,10 +11,6 @@
 
 #include "copyright.h"
 #include "system.h"
-#include "elevatortest.h"
-
-// testnum is set in main.cc
-int testnum = 1;
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -37,37 +33,21 @@ SimpleThread(int which)
 }
 
 //----------------------------------------------------------------------
-// ThreadTest1
+// ThreadTest
 // 	Set up a ping-pong between two threads, by forking a thread 
 //	to call SimpleThread, and then calling SimpleThread ourselves.
 //----------------------------------------------------------------------
 
 void
-ThreadTest1()
+ThreadTest()
 {
-    DEBUG('t', "Entering ThreadTest1");
+  //printf("running threadtest\n");
+    DEBUG('t', "Entering SimpleTest");
 
     Thread *t = new Thread("forked thread");
 
-    t->Fork(SimpleThread, (void*)1);
+    t->Fork(SimpleThread, 1);
     SimpleThread(0);
-}
-
-//----------------------------------------------------------------------
-// ThreadTest
-// 	Invoke a test routine.
-//----------------------------------------------------------------------
-
-void
-ThreadTest()
-{
-    switch (testnum) {
-    case 1:
-	ThreadTest1();
-	break;
-    default:
-	printf("No test specified.\n");
-	break;
-    }
+    //    printf("running threadtest\n");
 }
 

@@ -85,10 +85,10 @@ Thread::~Thread()
 //----------------------------------------------------------------------
 
 void 
-Thread::Fork(VoidFunctionPtr func, void *arg)
+Thread::Fork(VoidFunctionPtr func, int arg)
 {
     DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
-	  name, (int) func, (int*) arg);
+	  name, (int) func, arg);
     
     StackAllocate(func, arg);
 
@@ -120,7 +120,7 @@ Thread::CheckOverflow()
 #ifdef HOST_SNAKE			// Stacks grow upward on the Snakes
 	ASSERT(stack[StackSize - 1] == STACK_FENCEPOST);
 #else
-	ASSERT((int) *stack == (int) STACK_FENCEPOST);
+	ASSERT(*stack == STACK_FENCEPOST);
 #endif
 }
 
@@ -144,11 +144,13 @@ void
 Thread::Finish ()
 {
     (void) interrupt->SetLevel(IntOff);		
+    //    printf("1. finishing currentThread\n");
     ASSERT(this == currentThread);
     
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
     
     threadToBeDestroyed = currentThread;
+    // printf("2. finishing currentThread\n");
     Sleep();					// invokes SWITCH
     // not reached
 }
@@ -212,17 +214,19 @@ void
 Thread::Sleep ()
 {
     Thread *nextThread;
-    
+    //printf("3. finishing currentThread\n");
     ASSERT(this == currentThread);
     ASSERT(interrupt->getLevel() == IntOff);
-    
+    // printf("4. finishing currentThread\n");
     DEBUG('t', "Sleeping thread \"%s\"\n", getName());
 
     status = BLOCKED;
     while ((nextThread = scheduler->FindNextToRun()) == NULL)
 	interrupt->Idle();	// no one to run, wait for an interrupt
-        
+    // printf("5. finishing currentThread\n");    
+    //printf("the next thread is %s\n", nextThread->getName());
     scheduler->Run(nextThread); // returns when we've been signalled
+    //printf("6. finishing currentThread\n");
 }
 
 //----------------------------------------------------------------------
@@ -250,7 +254,7 @@ void ThreadPrint(int arg){ Thread *t = (Thread *)arg; t->Print(); }
 //----------------------------------------------------------------------
 
 void
-Thread::StackAllocate (VoidFunctionPtr func, void *arg)
+Thread::StackAllocate (VoidFunctionPtr func, int arg)
 {
     stack = (int *) AllocBoundedArray(StackSize * sizeof(int));
 
@@ -276,11 +280,11 @@ Thread::StackAllocate (VoidFunctionPtr func, void *arg)
     *stack = STACK_FENCEPOST;
 #endif  // HOST_SNAKE
     
-    machineState[PCState] = (int*)ThreadRoot;
-    machineState[StartupPCState] = (int*)InterruptEnable;
-    machineState[InitialPCState] = (int*)func;
+    machineState[PCState] = (int) ThreadRoot;
+    machineState[StartupPCState] = (int) InterruptEnable;
+    machineState[InitialPCState] = (int) func;
     machineState[InitialArgState] = arg;
-    machineState[WhenDonePCState] = (int*)ThreadFinish;
+    machineState[WhenDonePCState] = (int) ThreadFinish;
 }
 
 #ifdef USER_PROGRAM

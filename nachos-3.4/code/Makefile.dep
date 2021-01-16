@@ -12,16 +12,20 @@
 
 # SUN SPARC, Sun 4.xx 
 # HOST = -DHOST_SPARC -DHOST_IS_BIG_ENDIAN
-# LDFLAGS = -lsocket -lnls
+
+# SUN SPARC, Sun 5.x
+HOST = -DHOST_SPARC -DHOST_IS_BIG_ENDIAN -DHOST_SVR4 -DHOST_SunOS5
+CPP = /usr/ccs/lib/cpp
+CPP_AS_FLAGS = -D_ASM
+LDFLAGS = -lsocket -lnsl
 
 # HP PA-RISC, HP_UX
 # HOST = -DHOST_SNAKE -DHOST_IS_BIG_ENDIAN
 
 # 386, 386BSD Unix, or NetBSD Unix (available via anon ftp 
 #    from agate.berkeley.edu)
-# also, Linux
-HOST = -DHOST_i386
-LDFLAGS =
+# HOST = -DHOST_i386
+# CPP=/usr/bin/cpp
 
 # slight variant for 386 FreeBSD
 # HOST = -DHOST_i386 -DFreeBSD

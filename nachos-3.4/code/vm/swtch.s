@@ -1,43 +1,531 @@
-        .text
-        .align 2
-        .globl ThreadRoot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ident	"@(#)trap.h	1.30	01/11/08 SMI"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ident	"@(#)asm_linkage.h	1.37	02/01/04 SMI"
+
+
+
+
+
+
+
+
+
+#ident	"@(#)stack.h	1.19	02/02/23 SMI"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.seg    "text"
+
+
+
+
+
+
+
+
+
+
+.globl        ThreadRoot
 ThreadRoot:
-        pushl %ebp
-        movl %esp,%ebp
-        pushl %edx
-        call *%ecx
-        call *%esi
-        call *%edi
-        movl %ebp,%esp
-        popl %ebp
-        ret
-        .comm _eax_save,4
-        .globl SWITCH
+
+
+	nop  ; nop         
+
+	clr	%fp        
+
+			   
+
+
+	mov	%o0, %l0  
+	mov	%o1, %l1
+	mov	%o2, %l2
+			   
+
+
+
+
+	call	%o3,0
+	nop
+	call	%l0, 1	
+	mov	%l1, %o0   
+	call	%l2, 0
+	nop
+			   
+
+	ta	0x01
+
+
+
+.globl        SWITCH
 SWITCH:
-        movl %eax,_eax_save # save the value of eax
-        movl 4(%esp),%eax # move pointer to t1 into eax
-        movl %ebx,8(%eax) # save registers
-        movl %ecx,12(%eax)
-        movl %edx,16(%eax)
-        movl %esi,24(%eax)
-        movl %edi,28(%eax)
-        movl %ebp,20(%eax)
-        movl %esp,0(%eax) # save stack pointer
-        movl _eax_save,%ebx # get the saved value of eax
-        movl %ebx,4(%eax) # store it
-        movl 0(%esp),%ebx # get return address from stack into ebx
-        movl %ebx,32(%eax) # save it into the pc storage
-        movl 8(%esp),%eax # move pointer to t2 into eax
-        movl 4(%eax),%ebx # get new value for eax into ebx
-        movl %ebx,_eax_save # save it
-        movl 8(%eax),%ebx # retore old registers
-        movl 12(%eax),%ecx
-        movl 16(%eax),%edx
-        movl 24(%eax),%esi
-        movl 28(%eax),%edi
-        movl 20(%eax),%ebp
-        movl 0(%eax),%esp # restore stack pointer
-        movl 32(%eax),%eax # restore return address into eax
-        movl %eax,4(%esp) # copy over the ret address on the stack
-        movl _eax_save,%eax
-        ret
+
+	save	%sp, -(((((16*4) + (6*4) + 4))+(8-1)) & ~(8-1)), %sp
+	st	%fp, [%i0]
+	st	%i0, [%i0+4]
+	st	%i1, [%i0+8]
+	st	%i2, [%i0+12]
+	st	%i3, [%i0+16]
+	st	%i4, [%i0+20]
+	st	%i5, [%i0+24]
+	st	%i7, [%i0+32]
+	ta	0x03
+	nop
+	mov	%i1, %l0
+	ld	[%l0+4], %i0
+	ld	[%l0+8], %i1
+	ld	[%l0+12], %i2
+	ld	[%l0+16], %i3
+	ld	[%l0+20], %i4
+	ld	[%l0+24], %i5
+	ld	[%l0+32], %i7
+	ld	[%l0], %i6
+	ret
+	restore
+
+
+
+
+
+

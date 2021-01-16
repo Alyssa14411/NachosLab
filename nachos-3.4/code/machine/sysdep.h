@@ -13,6 +13,9 @@
 
 #include "copyright.h"
 
+#define TRUE 1 		// added this for compatiblity jcoh
+#define FALSE 0
+
 // Check file to see if there are any characters to be read.
 // If no characters in the file, return without waiting.
 extern bool PollFile(int fd);

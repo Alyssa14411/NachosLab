@@ -1,4 +1,4 @@
-// main.cc 
+// main.cc
 //	Bootstrap code to initialize the operating system kernel.
 //
 //	Allows direct calls into internal operating system functions,
@@ -53,9 +53,6 @@
 #include "utility.h"
 #include "system.h"
 
-#ifdef THREADS
-extern int testnum;
-#endif
 
 // External functions used by this file
 
@@ -63,7 +60,7 @@ extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
-
+extern void FProcess(int file);
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -83,35 +80,26 @@ main(int argc, char **argv)
 {
     int argCount;			// the number of arguments 
 					// for a particular command
-
+    //    printf("running main\n"); 
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
     
 #ifdef THREADS
-    for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
-      argCount = 1;
-      switch (argv[0][1]) {
-      case 'q':
-        testnum = atoi(argv[1]);
-        argCount++;
-        break;
-      default:
-        testnum = 1;
-        break;
-      }
-    }
-
     ThreadTest();
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
+      //      printf("number of commands %i\n", argc); 
 	argCount = 1;
         if (!strcmp(*argv, "-z"))               // print copyright
             printf (copyright);
 #ifdef USER_PROGRAM
         if (!strcmp(*argv, "-x")) {        	// run a user program
 	    ASSERT(argc > 1);
-            StartProcess(*(argv + 1));
+	    //            printf("running thread %s\n", (char*) *(argv+1));
+	    //printf("next thread to run %s\n", (char*) *(argv+3));
+	    Thread *t = new Thread((*(argv + 1)));
+            t->Fork(FProcess,(int)(*(argv + 1)));
             argCount = 2;
         } else if (!strcmp(*argv, "-c")) {      // test the console
 	    if (argc == 1)

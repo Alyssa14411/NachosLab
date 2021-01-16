@@ -15,9 +15,6 @@
 #include "filehdr.h"
 #include "openfile.h"
 #include "system.h"
-#ifdef HOST_SPARC
-#include <strings.h>
-#endif
 
 //----------------------------------------------------------------------
 // OpenFile::OpenFile
@@ -138,7 +135,8 @@ OpenFile::ReadAt(char *into, int numBytes, int position)
 					&buf[(i - firstSector) * SectorSize]);
 
     // copy the part we want
-    bcopy(&buf[position - (firstSector * SectorSize)], into, numBytes);
+//    bcopy(&buf[position - (firstSector * SectorSize)], into, numBytes);
+    memcpy(into, &buf[position - (firstSector * SectorSize)], numBytes);
     delete [] buf;
     return numBytes;
 }
@@ -175,7 +173,8 @@ OpenFile::WriteAt(char *from, int numBytes, int position)
 				SectorSize, lastSector * SectorSize);	
 
 // copy in the bytes we want to change 
-    bcopy(from, &buf[position - (firstSector * SectorSize)], numBytes);
+//    bcopy(from, &buf[position - (firstSector * SectorSize)], numBytes);
+      memcpy(&buf[position - (firstSector * SectorSize)], from, numBytes);
 
 // write modified sectors back
     for (i = firstSector; i <= lastSector; i++)	

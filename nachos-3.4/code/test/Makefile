@@ -13,11 +13,14 @@
 # if you are cross-compiling, you need to point to the right executables
 # and change the flags to ld and the build procedure for as
 
-GCCDIR = ../../../gnu-decstation-ultrix/decstation-ultrix/2.95.3/
+# Syracuse setting. jcoh Jan 11.
 
+GCCDIR = /usr/ecs/gcc-3.0.3/bin/
 LDFLAGS = -T script -N
-ASFLAGS = -mips2
+# ASFLAGS = -mips
+ASFLAGS = 
 CPPFLAGS = $(INCDIR)
+
 
 # if you aren't cross-compiling:
 # GCCDIR =
@@ -25,20 +28,20 @@ CPPFLAGS = $(INCDIR)
 # ASFLAGS =
 # CPPFLAGS = -P $(INCDIR)
 
-PATH = $(GCCDIR):/lib:/usr/bin:/bin
 
-CC = $(GCCDIR)gcc -B../../../gnu-decstation-ultrix/
-AS = $(GCCDIR)as
-LD = $(GCCDIR)ld
+CC = $(GCCDIR)decstation-ultrix-gcc
+# AS = $(GCCDIR)decstation-ultrix-as
+AS = /usr/ecs/binutils-2.11.2/bin/decstation-ultrix-as
+LD = /usr/ecs/binutils-2.11.2/bin/decstation-ultrix-ld
 
-CPP = gcc -E
+CPP = /usr/ccs/lib/cpp
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
-all: halt shell matmult sort
+all: halt shell matmult sort prog1 prog2
 
 start.o: start.s ../userprog/syscall.h
-	$(CPP) $(CPPFLAGS) start.c > strt.s
+	$(CPP) $(CPPFLAGS) start.s > strt.s
 	$(AS) $(ASFLAGS) -o start.o strt.s
 	rm strt.s
 
@@ -65,3 +68,15 @@ matmult.o: matmult.c
 matmult: matmult.o start.o
 	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
 	../bin/coff2noff matmult.coff matmult
+	
+prog1.o: prog1.c
+	$(CC) $(CFLAGS) -c prog1.c
+prog1: prog1.o start.o
+	$(LD) $(LDFLAGS) start.o prog1.o -o prog1.coff
+	../bin/coff2noff prog1.coff prog1
+
+prog2.o: prog2.c
+	$(CC) $(CFLAGS) -c prog2.c
+prog2: prog2.o start.o
+	$(LD) $(LDFLAGS) start.o prog2.o -o prog2.coff
+	../bin/coff2noff prog2.coff prog2

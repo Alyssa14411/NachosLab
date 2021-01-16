@@ -7,7 +7,7 @@
 
 #include "copyright.h"
 #include "system.h"
-
+#include "list.h"
 // This defines *all* of the global data structures used by Nachos.
 // These are all initialized and de-allocated by this file.
 
@@ -17,8 +17,8 @@ Scheduler *scheduler;			// the ready list
 Interrupt *interrupt;			// interrupt status
 Statistics *stats;			// performance metrics
 Timer *timer;				// the hardware timer device,
-					// for invoking context switches
-
+List *ioList = new List();					// for invoking context switches
+//joinList = new List();
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
 #endif
@@ -80,7 +80,7 @@ Initialize(int argc, char **argv)
     int argCount;
     char* debugArgs = "";
     bool randomYield = FALSE;
-
+    currentProcess = 0; 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
 #endif

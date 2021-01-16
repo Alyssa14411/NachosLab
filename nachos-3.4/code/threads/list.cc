@@ -42,8 +42,7 @@ ListElement::ListElement(void *itemPtr, int sortKey)
 
 List::List()
 { 
-    first = last = NULL;
-    numInList = 0; 
+    first = last = NULL; 
 }
 
 //----------------------------------------------------------------------
@@ -86,7 +85,6 @@ List::Append(void *item)
 	last->next = element;
 	last = element;
     }
-    numInList++;
 }
 
 //----------------------------------------------------------------------
@@ -113,7 +111,6 @@ List::Prepend(void *item)
 	element->next = first;
 	first = element;
     }
-    numInList++;
 }
 
 //----------------------------------------------------------------------
@@ -196,14 +193,12 @@ List::SortedInsert(void *item, int sortKey)
             if (sortKey < ptr->next->key) {
 		element->next = ptr->next;
 	        ptr->next = element;
-                numInList++;
 		return;
 	    }
 	}
 	last->next = element;		// item goes at end of list
 	last = element;
     }
-    numInList++;
 }
 
 //----------------------------------------------------------------------
@@ -238,39 +233,6 @@ List::SortedRemove(int *keyPtr)
     if (keyPtr != NULL)
         *keyPtr = element->key;
     delete element;
-    numInList--;
     return thing;
-}
-
-
-
-void
-List::Remove(void *item)
-{
-    ListElement *prev, *ptr;
-    void *removed;
-
-    //ASSERT(IsInList(item));
-
-    // if first item on list is match, then remove from front
-    if (item == first->item) {	
-        removed = Remove();
-        ASSERT(item == removed);
-    } else {
-	prev = first;
-        for (ptr = first->next; ptr != NULL; prev = ptr, ptr = ptr->next) {
-            if (item == ptr->item) {
-		prev->next = ptr->next;
-		if (prev->next == NULL) {
-		    last = prev;
-		}
-		delete ptr;
-		numInList--;
-		break;
-	    }
-        }
-	ASSERT(ptr != NULL);	// should always find item!
-    }
-   //ASSERT(!IsInList(item));
 }
 
